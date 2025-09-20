@@ -28,20 +28,15 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-4">
-        <h1 className="text-2xl font-bold">
-          {mode === "signin" ? "Sign in" : "Create account"}
-        </h1>
+        <h1 className="text-2xl font-bold">{mode === "signin" ? "Sign in" : "Create account"}</h1>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <input className="w-full border p-2 rounded" placeholder="Email"
-            value={email} onChange={e=>setEmail(e.target.value)} />
-          <input className="w-full border p-2 rounded" placeholder="Password"
-            type="password" value={pw} onChange={e=>setPw(e.target.value)} />
+          <input className="w-full border p-2 rounded" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
+          <input className="w-full border p-2 rounded" placeholder="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} />
           <button className="w-full border p-2 rounded font-semibold" type="submit">
             {mode === "signin" ? "Sign in" : "Sign up"}
           </button>
         </form>
-        <button className="text-sm underline" onClick={()=>
-          setMode(mode === "signin" ? "signup" : "signin")}>
+        <button className="text-sm underline" onClick={()=>setMode(mode==="signin"?"signup":"signin")}>
           {mode === "signin" ? "Need an account? Sign up" : "Have an account? Sign in"}
         </button>
         {msg && <p className="text-sm">{msg}</p>}
@@ -49,3 +44,4 @@ export default function AuthPage() {
     </div>
   );
 }
+
