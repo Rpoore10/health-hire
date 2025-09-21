@@ -6,6 +6,7 @@ import {
   addDoc,
   collection,
   serverTimestamp,
+  FieldValue, // ✅ add this
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -18,7 +19,7 @@ type NewJobPayload = {
   shifts: string[]; // ["Nights", "3x12"]
   modalities: string[]; // ["OB/GYN", "General"]
   mustHaveCerts: string[]; // ["RDMS"]
-  createdAt: any;
+  createdAt: FieldValue; // ✅ no more `any`
 };
 
 export default function NewJobPage() {
@@ -64,18 +65,16 @@ export default function NewJobPage() {
       location: location.trim(),
       minPay: min,
       maxPay: max,
-      shifts: shifts.split(",").map(s => s.trim()).filter(Boolean),
-      modalities: modalities.split(",").map(m => m.trim()).filter(Boolean),
-      mustHaveCerts: mustCerts.split(",").map(c => c.trim()).filter(Boolean),
-      createdAt: serverTimestamp(),
+      shifts: shifts.split(",").map((s) => s.trim()).filter(Boolean),
+      modalities: modalities.split(",").map((m) => m.trim()).filter(Boolean),
+      mustHaveCerts: mustCerts.split(",").map((c) => c.trim()).filter(Boolean),
+      createdAt: serverTimestamp(), // ✅ typed as FieldValue
     };
 
     try {
       setSubmitting(true);
       await addDoc(collection(db, "jobs"), payload);
       setMsg("Job posted ✅");
-      // optional: clear fields
-      // setTitle(""); setLocation(""); setMinPay(""); setMaxPay(""); setShifts(""); setModalities(""); setMustCerts("");
     } catch (err) {
       let text = "Error posting job";
       if (err && typeof err === "object" && "message" in err) {
@@ -188,3 +187,4 @@ export default function NewJobPage() {
     </div>
   );
 }
+
