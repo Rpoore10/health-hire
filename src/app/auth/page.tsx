@@ -6,33 +6,81 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  sendPasswordResetEmail,
 } from "firebase/auth";
+
+function mapFirebaseError(code?: string): string {
+  switch (code) {
+    case "auth/email-already-in-use":
+      return "Email already in use. Try signing in instead.";
+    case "auth/invalid-email":
+      return "That email doesn’t look right.";
+    case "auth/weak-password":
+      return "Password should be at least 6 characters.";
+    case "auth/wrong-password":
+      return "Incorrect password. Try again or reset it.";
+    case "auth/user-not-found":
+      return "No account with that email. Try signing up.";
+    case "auth/too-many-requests":
+      return "Too many attempts. Please wait a minute and try again.";
+    default:
+      return "Something went wrong. Please try again.";
+  }
+}
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [msg, setMsg] = useState("");
+  const [info, setInfo] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMsg("");
+    setInfo("");
     try {
       if (mode === "signin") {
         await signInWithEmailAndPassword(auth, email, pw);
-        setMsg("Signed in ✅");
+        setInfo("Signed in ✅");
       } else {
         await createUserWithEmailAndPassword(auth, email, pw);
-        setMsg("Account created ✅");
+        setInfo("Account created ✅ You’re signed in.");
       }
     } catch (err) {
-      // err is unknown by default in TS; safely extract a message
-      let text = "Error";
-      if (err && typeof err === "object" && "message" in err) {
-        const e = err as { message?: unknown };
-        text = typeof e.message === "string" ? e.message : "Error";
+      // err is unknown in TS; safely inspect
+      let code: string | undefined;
+      if (err && typeof err === "object" && "code" in err) {
+        const e = err as { code?: unknown };
+        code = typeof e.code === "string" ? e.code : undefined;
       }
-      setMsg(text);
+      const nice = mapFirebaseError(code);
+
+      // Helpful auto-switch: if email already in use during signup, switch to signin
+      if (code === "auth/email-already-in-use" && mode === "signup") {
+        setMode("signin");
+      }
+      setMsg(nice);
+    }
+  }
+
+  async function handleReset() {
+    setMsg("");
+    setInfo("");
+    try {
+      if (!email) {
+        setMsg("Enter your email first, then click ‘Forgot password’."); 
+        return;
+      }
+      await sendPasswordResetEmail(auth, email);
+      setInfo("Password reset email sent. Check your inbox.");
+    } catch (err) {
+      let code: string | undefined;
+      if (err && typeof err === "object" && "code" in err) {
+        const e = err as { code?: unknown };
+        code = typeof e.code === "string" ? e.code : undefined;
+      }
+      setMsg(mapFirebaseError(code));
     }
   }
 
@@ -57,7 +105,7 @@ export default function AuthPage() {
             type="password"
             value={pw}
             onChange={(e) => setPw(e.target.value)}
-            autoComplete="current-password"
+            autoComplete={mode === "signin" ? "current-password" : "new-password"}
           />
           <button className="w-full border p-2 rounded font-semibold" type="submit">
             {mode === "signin" ? "Sign in" : "Sign up"}
@@ -67,20 +115,32 @@ export default function AuthPage() {
         <div className="flex items-center justify-between text-sm">
           <button
             className="underline"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+            onClick={() => {
+              setMsg("");
+              setInfo("");
+              setMode(mode === "signin" ? "signup" : "signin");
+            }}
           >
             {mode === "signin" ? "Need an account? Sign up" : "Have an account? Sign in"}
           </button>
 
+          <button className="underline" onClick={handleReset}>
+            Forgot password?
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between text-sm">
           <button className="underline" onClick={() => signOut(auth)}>
             Sign out
           </button>
         </div>
 
-        {msg && <p className="text-sm">{msg}</p>}
+        {msg && <p className="text-sm text-red-600">{msg}</p>}
+        {info && <p className="text-sm text-green-700">{info}</p>}
       </div>
     </div>
   );
 }
+
 
 
