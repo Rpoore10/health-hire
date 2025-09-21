@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { auth } from "@/lib/firebase";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { ensureEmployerProfile } from "@/lib/createProfile";
+import { auth } from "../../lib/firebase";
+import { ensureEmployerProfile } from "../../lib/createProfile";
 
 function mapFirebaseError(code?: string): string {
   switch (code) {
@@ -31,7 +31,10 @@ export default function AuthPage() {
 
   async function afterAuth() {
     const u = auth.currentUser;
-    if (u) await ensureEmployerProfile(u.uid, u.email ?? undefined);
+    if (u) {
+      // pass undefined (not null) to satisfy types
+      await ensureEmployerProfile(u.uid, u.email ?? undefined);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -110,6 +113,7 @@ export default function AuthPage() {
     </div>
   );
 }
+
 
 
 

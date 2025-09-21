@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { ensureEmployerProfile } from "@/lib/createProfile";
+import { auth } from "../lib/firebase";
+import { ensureEmployerProfile } from "../lib/createProfile";
 
 export default function Home() {
   const [ready, setReady] = useState(false);
@@ -43,6 +43,7 @@ export default function Home() {
     </main>
   );
 }
+
 
 
 
